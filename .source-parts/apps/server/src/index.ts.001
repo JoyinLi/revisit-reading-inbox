@@ -1,0 +1,180 @@
+    .sort((a, b) => b.saved_at.localeCompare(a.saved_at))
+    .map((item) => ({
+      ...item,
+      highlight_count: store.highlights.filter((highlight) => highlight.item_id === item.id).length,
+      note_count: store.notes.filter((note) => note.item_id === item.id).length
+    }));
+  res.json(rows);
+});
+
+app.get('/api/items/:id', (req, res) => {
+  const item = getItemDetail(req.params.id);
+  if (!item) return res.status(404).json({ error: 'Item not found' });
+  res.json(item);
+});
+
+app.post('/api/capture', async (req, res) => {
+  const parsed = captureSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  const input = parsed.data;
+  const source = input.source || detectSource(input.url);
+  const isWebsiteCapture = input.captureMode === 'website';
+  const isXSmartCapture = !isWebsiteCapture && source === 'X' && Boolean(input.resourceKind);
+  const allowSameUrl = input.type === 'selected_text' || input.type === 'image';
+  const existing = allowSameUrl ? undefined : store.items.find((item) =>
+    item.url === input.url && (isWebsiteCapture ? item.type === 'website' : item.type !== 'website')
+  );
+
+  if (isWebsiteCapture) {
+    const now = new Date().toISOString();
+    let inspection: Awaited<ReturnType<typeof inspectLink>> | null = null;
+    try { inspection = await inspectLink(input.url); } catch (error) { console.warn('Website metadata inspection failed:', error); }
+
+    let screenshotUrl: string | null = null;
+    try {
+      screenshotUrl = input.screenshotDataUrl
+        ? await cacheWebsiteScreenshot(input.screenshotDataUrl)
+        : await captureWebsiteScreenshot(input.url);
+    } catch (error) {
+      console.warn('Website screenshot failed:', error);
+    }
+
+    const domain = inspection?.domain || safeDomain(input.url) || new URL(input.url).hostname;
+    const title = input.title?.trim() || inspection?.title?.trim() || domain;
+    const description = input.description?.trim() || inspection?.description?.trim() || '';
+
+    if (existing) {
+      let changed = false;
+      if (input.title?.trim() && input.title.trim() !== existing.title) { existing.title = input.title.trim(); changed = true; }
+      if (!input.title?.trim() && inspection?.title?.trim() && existing.title !== inspection.title.trim()) { existing.title = inspection.title.trim(); changed = true; }
+      if (description && description !== existing.excerpt) { existing.excerpt = description; changed = true; }
+      if (screenshotUrl && screenshotUrl !== existing.website_screenshot_url) {
+        existing.website_screenshot_url = screenshotUrl;
+        existing.image_url = screenshotUrl;
+        changed = true;
+      }
+      if (existing.type !== 'website') { existing.type = 'website'; changed = true; }
+      if (existing.extraction_status !== 'website_saved') { existing.extraction_status = 'website_saved'; changed = true; }
+      if (existing.resource_domain !== domain) { existing.resource_domain = domain; changed = true; }
+      if (input.note.trim()) {
+        store.notes.push({ id: crypto.randomUUID(), item_id: existing.id, highlight_id: null, body: input.note.trim(), created_at: now });
+        rebuildTakeawaySummary(existing.id);
+        changed = true;
+      }
+      if (changed) { existing.updated_at = now; persist(); pruneCurrentMedia(); }
+      return res.json({ item: getItemDetail(existing.id), duplicate: true, enriched: Boolean(screenshotUrl) });
+    }
+
+    const id = crypto.randomUUID();
+    const item: ItemRecord = {
+      id,
+      url: input.url,
+      canonical_url: inspection?.finalUrl || input.canonicalUrl || null,
+      title,
+      author: null,
+      source,
+      type: 'website',
+      excerpt: description,
+      summary_zh: '',
+      takeaway_summary_zh: '',
+      note: '',
+      status: input.status,
+      saved_at: now,
+      updated_at: now,
+      content_text: '',
+      image_url: screenshotUrl,
+      website_screenshot_url: screenshotUrl,
+      progress: 0,
+      scroll_y: 0,
+      extraction_status: screenshotUrl ? 'website_saved' : 'website_no_screenshot',
+      resource_kind: null,
+      resource_url: null,
+      resource_title: null,
+      resource_description: null,
+      resource_domain: domain,
+      resource_image_url: null,
+      context_text: null,
+      context_author: null,
+      context_handle: null
+    };
+    store.items.push(item);
+    if (input.note.trim()) {
+      store.notes.push({ id: crypto.randomUUID(), item_id: id, highlight_id: null, body: input.note.trim(), created_at: now });
+      rebuildTakeawaySummary(id);
+    }
+    persist();
+    pruneCurrentMedia();
+    return res.status(201).json({ item: getItemDetail(id), duplicate: false, enriched: Boolean(screenshotUrl) });
+  }
+
+  let extracted: Awaited<ReturnType<typeof extractPage>> | null = null;
+  let resourceUrl: string | null = input.sharedUrl || null;
+  let resourceTitle: string | null = input.sharedTitle?.trim() || null;
+  let resourceDescription: string | null = input.sharedDescription?.trim() || null;
+  let resourceDomain: string | null = input.sharedDomain?.trim() || safeDomain(resourceUrl);
+  let resourceImageUrl: string | null = input.sharedImageUrl || null;
+  let contentBlocks = normalizeContentBlocks(input.contentBlocks ?? []);
+
+  if (contentBlocks.length === 0 && input.blocks?.length) {
+    contentBlocks = normalizeContentBlocks(input.blocks.map((text) => ({ kind: 'paragraph', text })));
+  }
+  if (contentBlocks.length === 0 && (input.selectedText || input.text)) {
+    contentBlocks = normalizeContentBlocks([{ kind: 'paragraph', text: input.selectedText || input.text || '' }]);
+  }
+
+  // An X website share is a pointer to another resource. Resolve t.co and use
+  // the target page—not the tweet chrome—as the readable copy.
+  if (isXSmartCapture && (input.resourceKind === 'website' || input.resourceKind === 'video') && resourceUrl) {
+    resourceUrl = await resolveUrl(resourceUrl);
+    resourceDomain = safeDomain(resourceUrl) || resourceDomain;
+    try {
+      extracted = await extractPage(resourceUrl);
+      resourceUrl = extracted.finalUrl;
+      resourceDomain = extracted.domain || resourceDomain;
+      resourceTitle = extracted.title?.trim() || resourceTitle;
+      resourceDescription = extracted.excerpt?.trim() || resourceDescription;
+      resourceImageUrl = extracted.imageUrl || resourceImageUrl;
+      if (input.resourceKind === 'website') {
+        const targetBlocks = normalizeContentBlocks(extracted.contentBlocks);
+        if (targetBlocks.length > 0) contentBlocks = targetBlocks;
+      }
+    } catch (error) {
+      console.warn('External X resource extraction failed:', error);
+    }
+  }
+
+  const needsReadableCopy = !existing || existing.extraction_status === 'link_only' || !existing.content_text.trim();
+  if (!isXSmartCapture && contentBlocks.length === 0 && needsReadableCopy && input.type !== 'image' && input.type !== 'link') {
+    try {
+      extracted = await extractPage(input.url);
+      contentBlocks = normalizeContentBlocks(extracted.contentBlocks);
+    } catch (error) {
+      console.warn('Extraction failed:', error);
+    }
+  }
+
+  if (isXSmartCapture && input.resourceKind === 'text' && contentBlocks.length === 0 && input.postText?.trim()) {
+    contentBlocks = normalizeContentBlocks([{ kind: 'paragraph', text: input.postText }]);
+  }
+
+  const mediaReferer = resourceUrl || input.url;
+  if (contentBlocks.some((block) => block.kind === 'image')) {
+    contentBlocks = await localizeContentImages(contentBlocks, mediaReferer);
+  }
+
+  let representativeImage = resourceImageUrl || contentBlocks.find((block) => block.kind === 'image')?.imageUrl || input.imageUrl || extracted?.imageUrl || null;
+  if (representativeImage && !representativeImage.startsWith('/media/')) {
+    const representativeReferer = /(?:^|\.)pbs\.twimg\.com$/i.test(safeDomain(representativeImage) || '') ? input.url : mediaReferer;
+    representativeImage = await cacheRemoteImage(representativeImage, representativeReferer);
+  }
+  resourceImageUrl = resourceImageUrl ? representativeImage : (isXSmartCapture ? representativeImage : null);
+
+  const textBlocks = contentBlocks.filter((block) => block.kind !== 'image' && block.text).map((block) => block.text!);
+  const imageCount = contentBlocks.filter((block) => block.kind === 'image').length;
+  const now = new Date().toISOString();
+  const contentText = textBlocks.join('\n\n');
+  const contextText = input.postText?.trim() || null;
+  const incomingExcerpt = resourceDescription || input.description || extracted?.excerpt || contextText || textBlocks[0]?.slice(0, 320) || '';
+  const inferredType = isXSmartCapture ? `x_${input.resourceKind}` : (input.type || (source === 'X' ? 'post' : source === 'Pinterest' ? 'image' : 'article'));
+  const suggestedTitle = isXSmartCapture
+    ? resourceTitle || firstMeaningfulLine(contextText || undefined) || input.title || `${input.postAuthor || input.postHandle || 'X'} post`

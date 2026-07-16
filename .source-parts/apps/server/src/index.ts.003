@@ -1,0 +1,117 @@
+  const index = store.notes.findIndex((note) => note.id === req.params.id);
+  if (index < 0) return res.status(404).json({ error: 'Note not found' });
+  const [removed] = store.notes.splice(index, 1);
+  rebuildTakeawaySummary(removed.item_id);
+  persist();
+  res.status(204).end();
+});
+
+app.delete('/api/highlights/:id', (req, res) => {
+  const index = store.highlights.findIndex((highlight) => highlight.id === req.params.id);
+  if (index < 0) return res.status(404).json({ error: 'Highlight not found' });
+  const [removed] = store.highlights.splice(index, 1);
+  store.notes = store.notes.filter((note) => note.highlight_id !== removed.id);
+  rebuildTakeawaySummary(removed.item_id);
+  persist();
+  res.status(204).end();
+});
+
+
+app.delete('/api/items/:itemId/blocks/:blockId', (req, res) => {
+  const item = store.items.find((entry) => entry.id === req.params.itemId);
+  if (!item) return res.status(404).json({ error: 'Item not found' });
+
+  const index = store.blocks.findIndex(
+    (block) => block.id === req.params.blockId && block.item_id === req.params.itemId
+  );
+  if (index < 0) return res.status(404).json({ error: 'Image not found' });
+
+  const block = store.blocks[index];
+  if (block.kind !== 'image' || !block.image_url) {
+    return res.status(400).json({ error: 'Only image blocks can be deleted' });
+  }
+
+  const removedUrl = block.image_url;
+  store.blocks.splice(index, 1);
+
+  const remainingBlocks = store.blocks
+    .filter((entry) => entry.item_id === item.id)
+    .sort((a, b) => a.block_index - b.block_index);
+  remainingBlocks.forEach((entry, blockIndex) => { entry.block_index = blockIndex; });
+
+  const nextImage = remainingBlocks.find((entry) => entry.kind === 'image' && entry.image_url)?.image_url ?? null;
+  if (item.image_url === removedUrl) item.image_url = nextImage;
+  if (item.resource_image_url === removedUrl) item.resource_image_url = nextImage;
+  item.updated_at = new Date().toISOString();
+
+  persist();
+  pruneCurrentMedia();
+  res.json(getItemDetail(item.id));
+});
+
+app.delete('/api/items/:id/cover-image', (req, res) => {
+  const item = store.items.find((entry) => entry.id === req.params.id);
+  if (!item) return res.status(404).json({ error: 'Item not found' });
+
+  const removedUrls = new Set([item.image_url, item.website_screenshot_url, item.resource_image_url].filter((value): value is string => Boolean(value)));
+  item.image_url = null;
+  item.website_screenshot_url = null;
+  item.resource_image_url = null;
+  if (item.type === 'website') item.extraction_status = 'website_no_screenshot';
+
+  // A resource preview can also have been stored as a reader image block.
+  // Remove only matching preview copies, while preserving unrelated article images.
+  if (removedUrls.size > 0) {
+    store.blocks = store.blocks.filter(
+      (block) => block.item_id !== item.id || block.kind !== 'image' || !block.image_url || !removedUrls.has(block.image_url)
+    );
+    store.blocks
+      .filter((block) => block.item_id === item.id)
+      .sort((a, b) => a.block_index - b.block_index)
+      .forEach((block, blockIndex) => { block.block_index = blockIndex; });
+  }
+
+  item.updated_at = new Date().toISOString();
+  persist();
+  pruneCurrentMedia();
+  res.json(getItemDetail(item.id));
+});
+
+app.get('/api/highlights', (_req, res) => {
+  const rows = store.highlights
+    .map((highlight) => {
+      const item = store.items.find((entry) => entry.id === highlight.item_id);
+      const block = store.blocks.find((entry) => entry.id === highlight.block_id);
+      return {
+        ...highlight,
+        title: item?.title,
+        source: item?.source,
+        url: item?.url,
+        block_index: block?.block_index ?? 0,
+        notes: store.notes.filter((note) => note.highlight_id === highlight.id)
+      };
+    })
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  res.json(rows);
+});
+
+app.delete('/api/items/:id', (req, res) => {
+  const index = store.items.findIndex((item) => item.id === req.params.id);
+  if (index < 0) return res.status(404).json({ error: 'Item not found' });
+  store.items.splice(index, 1);
+  store.blocks = store.blocks.filter((block) => block.item_id !== req.params.id);
+  store.highlights = store.highlights.filter((highlight) => highlight.item_id !== req.params.id);
+  store.notes = store.notes.filter((note) => note.item_id !== req.params.id);
+  persist();
+  pruneCurrentMedia();
+  res.status(204).end();
+});
+
+app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error(error);
+  res.status(500).json({ error: 'Unexpected server error' });
+});
+
+app.listen(PORT, () => {
+  console.log(`Revisit API running at http://localhost:${PORT}`);
+});

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Save to Revisit</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <main class="popup">
+    <header>
+      <div class="brand-mark">R</div>
+      <div><h1>Save to Revisit</h1><p id="host">Reading current page…</p></div>
+    </header>
+
+    <section class="page-preview">
+      <div class="preview-label">Current page</div>
+      <p id="detected-title" class="detected-title">Loading…</p>
+      <p id="url"></p>
+      <p id="extraction-status" class="extraction-status">Checking page type…</p>
+    </section>
+
+    <fieldset class="save-mode-field">
+      <legend>Save as</legend>
+      <div class="save-mode-toggle" role="radiogroup" aria-label="Save page as website or article">
+        <button type="button" data-mode="website" role="radio" aria-checked="false">Website</button>
+        <button type="button" data-mode="article" role="radio" aria-checked="true">Article</button>
+      </div>
+      <p id="mode-help" class="mode-help">Article saves readable text, images, highlights and notes.</p>
+    </fieldset>
+
+    <label>
+      <span id="name-label">Article name</span> <span>editable</span>
+      <input id="custom-title" type="text" maxlength="500" placeholder="A name you will recognize later" />
+    </label>
+
+    <label>
+      Status
+      <select id="status">
+        <option value="unread">Unread</option>
+        <option value="reading">Reading</option>
+        <option value="read">Read</option>
+      </select>
+    </label>
+
+    <label>
+      Quick note <span>optional</span>
+      <textarea id="note" rows="3" placeholder="Why do you want to return to this?"></textarea>
+    </label>
+
+    <div id="message" role="status"></div>
+    <button id="save" class="primary">Save article</button>
+    <button id="open" class="secondary">Open Library</button>
+    <a href="options.html" target="_blank" class="settings">Connection settings</a>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

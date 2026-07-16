@@ -1,0 +1,36 @@
+:root { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #171715; background: #f7f7f5; }
+* { box-sizing: border-box; }
+body { margin: 0; width: 360px; background: #f7f7f5; }
+.popup { padding: 18px; }
+header { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; }
+.brand-mark { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: #171715; color: white; font-weight: 800; }
+h1 { margin: 0; font-size: 16px; }
+header p { margin: 3px 0 0; color: #7b7b75; font-size: 11px; }
+.page-preview { background: white; border: 1px solid #e2e2dc; border-radius: 12px; padding: 13px; margin-bottom: 14px; }
+.preview-label { color: #999991; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+.detected-title { margin: 7px 0 5px !important; color: #343431 !important; font-size: 13px !important; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: normal !important; overflow: hidden !important; }
+.page-preview p { margin: 0; color: #878780; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+label { display: grid; gap: 6px; margin-top: 12px; font-size: 11px; font-weight: 680; }
+label span { color: #999991; font-weight: 500; }
+input, select, textarea { width: 100%; border: 1px solid #deded8; border-radius: 9px; background: white; outline: 0; padding: 9px 10px; color: #171715; font: inherit; }
+textarea { resize: vertical; line-height: 1.45; }
+input:focus, select:focus, textarea:focus { border-color: #999991; box-shadow: 0 0 0 3px rgba(20,20,18,.05); }
+button { width: 100%; height: 40px; border-radius: 10px; border: 1px solid transparent; font-weight: 700; cursor: pointer; margin-top: 10px; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.primary { background: #171715; color: white; }
+.secondary { background: white; border-color: #deded8; color: #171715; }
+#message { min-height: 15px; margin-top: 10px; font-size: 11px; }
+#message.success { color: #26703b; }
+#message.error { color: #a32e28; }
+.settings { display: block; text-align: center; margin-top: 11px; color: #7b7b75; font-size: 10px; text-decoration: underline; text-underline-offset: 3px; }
+
+.extraction-status { margin-top: 8px !important; font-size: 10px !important; font-weight: 650; white-space: normal !important; }
+.extraction-status.success { color: #26703b !important; }
+.extraction-status.warning { color: #a1681d !important; }
+
+.save-mode-field { margin: 0 0 4px; padding: 0; border: 0; }
+.save-mode-field legend { margin-bottom: 7px; font-size: 11px; font-weight: 680; }
+.save-mode-toggle { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border: 1px solid #deded8; border-radius: 11px; background: #ecece8; }
+.save-mode-toggle button { height: 34px; margin: 0; border: 0; border-radius: 8px; background: transparent; color: #66665f; box-shadow: none; }
+.save-mode-toggle button.selected { background: #fff; color: #171715; box-shadow: 0 1px 4px rgba(20,20,18,.09); }
+.mode-help { min-height: 29px; margin: 7px 1px 0; color: #85857d; font-size: 10px; line-height: 1.45; }

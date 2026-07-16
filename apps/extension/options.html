@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Revisit settings</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <main>
+    <h1>Connection settings</h1>
+    <p>Keep the defaults for local development. Change them after you deploy the Web App and API.</p>
+    <label>API address<input id="apiBase" type="url" /></label>
+    <label>Web App address<input id="appBase" type="url" /></label>
+    <button id="save">Save settings</button>
+    <div id="message"></div>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>

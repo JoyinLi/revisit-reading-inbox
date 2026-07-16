@@ -1,0 +1,48 @@
+name: Assemble Revisit v1.0 source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.source-parts/**'
+      - '.github/workflows/assemble-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Assemble source files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -d .source-parts ]; then
+            echo "Revisit v1.0 source is already assembled."
+            exit 0
+          fi
+
+          mkdir -p apps/server/src apps/web/src/pages apps/web/src
+          cat .source-parts/apps/server/src/index.ts.* > apps/server/src/index.ts
+          cat .source-parts/apps/web/src/pages/ReaderPage.tsx.* > apps/web/src/pages/ReaderPage.tsx
+          cat .source-parts/apps/web/src/styles.css.* > apps/web/src/styles.css
+
+          test -s apps/server/src/index.ts
+          test -s apps/web/src/pages/ReaderPage.tsx
+          test -s apps/web/src/styles.css
+
+          rm -rf .source-parts
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: publish Revisit v1.0 source"
+          git push origin HEAD:main

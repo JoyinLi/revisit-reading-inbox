@@ -1,0 +1,175 @@
+  .brand, .add-button, .sidebar-note { display: none; }
+  .primary-nav { display: flex; width: 100%; justify-content: space-around; }
+  .nav-item { flex: 1; justify-content: center; flex-direction: column; gap: 3px; font-size: 10px; padding: 5px; background: transparent !important; }
+  .nav-item.active { color: var(--text); }
+  .main-content { padding-bottom: 66px; }
+  .page-frame { width: min(100% - 32px, 680px); padding: 34px 0 72px; }
+  .page-header { margin-bottom: 24px; }
+  .page-header h1 { font-size: 36px; }
+  .desktop-add { display: none; }
+  .library-toolbar { grid-template-columns: 1fr; }
+  .source-filter { height: 42px; }
+  .status-tabs { gap: 19px; }
+  .content-row { grid-template-columns: 1fr; gap: 12px; padding: 21px 0; }
+  .content-row-main { grid-template-columns: 34px minmax(0, 1fr); gap: 12px; }
+  .source-mark { width: 34px; height: 34px; border-radius: 10px; }
+  .content-copy h2 { font-size: 17px; }
+  .content-row-actions { padding-left: 46px; }
+  .floating-add { position: fixed; z-index: 45; right: 18px; bottom: 82px; width: 52px; height: 52px; border: 0; border-radius: 50%; display: grid; place-items: center; background: var(--text); color: white; box-shadow: 0 12px 30px rgba(20,20,18,.22); }
+  .reader-route { padding-bottom: 0; }
+  .reader-topbar { padding: 10px 14px; }
+  .reader-topbar-actions .button { width: 39px; padding: 0; font-size: 0; }
+  .reader-layout { width: min(100% - 32px, 680px); padding: 42px 0 96px; }
+  .reader-article > h1 { font-size: 40px; }
+  .article-title-row h1 { font-size: 40px; }
+  .title-editor { grid-template-columns: 1fr; }
+  .title-editor textarea { font-size: 34px; min-height: 96px; }
+  .title-editor-actions { justify-content: flex-end; }
+  .reader-body { margin-top: 38px; }
+  .reader-paragraph { font-size: 19px; line-height: 1.72; }
+  .highlight-composer { left: 0; bottom: 76px; padding: 0 10px; }
+  .highlight-composer-inner { grid-template-columns: auto minmax(0, 1fr) auto; gap: 7px; }
+  .highlight-quote { grid-column: 2 / 4; grid-row: 1; }
+  .highlight-composer-inner > .icon-button { grid-row: 1; }
+  .highlight-composer input { grid-column: 1 / 3; grid-row: 2; }
+  .highlight-composer .button { grid-column: 3; grid-row: 2; }
+  .dialog { padding: 20px; }
+  .highlight-card blockquote { font-size: 18px; }
+}
+
+/* Notes v2: every saved entry is an independent note. */
+.reader-paragraph mark { cursor: pointer; transition: box-shadow .15s ease; }
+.reader-paragraph mark:hover, .reader-paragraph mark:focus-visible { box-shadow: 0 0 0 3px rgba(200,172,39,.2); outline: none; }
+.takeaway-summary { padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+.takeaway-summary > p { margin: 0; padding: 13px; border: 1px solid #e4dcc0; border-radius: 12px; background: #fffbed; color: #4c4525; font-size: 13px; line-height: 1.68; }
+.takeaway-summary > p.summary-placeholder { border-color: var(--border); background: #f7f7f3; color: var(--faint); }
+.note-editor { margin-top: 0; }
+.note-card-list { display: grid; gap: 8px; margin-top: 12px; }
+.note-card { border: 1px solid var(--border); background: #fafaf8; border-radius: 10px; padding: 11px 11px 8px; }
+.note-card p { margin: 0; color: #494944; font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
+.note-context { margin-bottom: 8px; color: #766719; font-family: Georgia, "Times New Roman", serif; font-size: 12px; line-height: 1.45; }
+.note-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+.note-card-footer time { color: var(--faint); font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }
+.mini-delete { border: 0; background: transparent; color: var(--faint); width: 24px; height: 24px; padding: 0; border-radius: 6px; display: inline-grid; place-items: center; cursor: pointer; flex: 0 0 auto; }
+.mini-delete:hover, .mini-delete:focus-visible { color: var(--danger); background: #fff0ef; outline: none; }
+.inline-annotation { padding-right: 7px; }
+.inline-note-copy { min-width: 0; flex: 1; border: 0; background: transparent; padding: 0; color: inherit; cursor: pointer; text-align: left; font: inherit; line-height: inherit; }
+.inline-note-copy:hover span { text-decoration: underline; text-underline-offset: 3px; }
+
+.highlight-note-panel-backdrop { position: fixed; inset: 0; z-index: 90; display: grid; align-items: end; justify-items: center; padding: 24px; background: rgba(20,20,18,.18); backdrop-filter: blur(3px); }
+.highlight-note-panel { width: min(720px, 100%); max-height: min(78vh, 720px); overflow: auto; border: 1px solid var(--border-strong); border-radius: 18px; background: rgba(255,255,255,.98); box-shadow: var(--shadow); padding: 18px; }
+.highlight-note-panel > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.highlight-note-panel > header span { color: var(--faint); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.highlight-note-panel blockquote { margin: 7px 0 0; font-family: Georgia, "Times New Roman", serif; font-size: 18px; line-height: 1.5; }
+.highlight-note-list { display: grid; gap: 9px; padding: 16px 0; }
+.empty-notes { margin: 0; padding: 18px; border: 1px dashed var(--border-strong); border-radius: 10px; color: var(--muted); font-size: 13px; text-align: center; }
+.highlight-note-form { border-top: 1px solid var(--border); padding-top: 15px; display: grid; gap: 9px; }
+.highlight-note-form textarea { width: 100%; border: 1px solid var(--border); border-radius: 11px; padding: 12px; resize: vertical; outline: none; line-height: 1.55; }
+.highlight-note-form textarea:focus { border-color: #a8a8a0; box-shadow: 0 0 0 3px rgba(20,20,18,.05); }
+.highlight-note-form .button { justify-self: end; }
+
+.highlight-card { overflow: hidden; }
+/* Keep the highlight copy comfortably inset from the card border. The more
+   specific selector prevents the generic direct-anchor reset from stripping
+   the intended card padding. */
+.highlight-card > a.highlight-main-link { display: block; padding: 26px 64px 22px 28px; }
+.highlight-notes-stack { display: grid; gap: 7px; padding: 0 28px 20px; }
+.highlight-note { margin-top: 0; }
+.highlight-note .mini-delete { margin-left: auto; }
+.highlight-card-actions { min-height: 56px; border-top: 1px solid var(--border); padding: 10px 16px 10px 28px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.text-action { color: var(--muted); font-size: 12px; font-weight: 650; }
+.text-action:hover { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.highlight-delete { position: static; }
+
+@media (max-width: 760px) {
+  .highlight-note-panel-backdrop { padding: 10px 10px 76px; }
+  .highlight-note-panel { max-height: 76vh; border-radius: 16px; }
+  .highlight-note-form .button { width: 100%; }
+}
+
+
+@media (max-width: 760px) {
+  .highlight-card > a.highlight-main-link { padding: 22px 48px 18px 20px; }
+  .highlight-notes-stack { padding: 0 20px 16px; }
+  .highlight-card-actions { padding: 9px 12px 9px 20px; }
+}
+
+/* Notes v3: one unified My notes area with highlight navigation. */
+.reader-paragraph mark.highlight-focus {
+  animation: highlight-focus-pulse 1.55s ease;
+}
+@keyframes highlight-focus-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 24, 0); }
+  30% { box-shadow: 0 0 0 7px rgba(201, 168, 24, .28); }
+  65% { box-shadow: 0 0 0 3px rgba(201, 168, 24, .16); }
+}
+.note-card.linked-note {
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, transform .15s ease;
+}
+.note-card.linked-note:hover,
+.note-card.linked-note:focus-visible {
+  border-color: #cdbb68;
+  background: #fffdf2;
+  transform: translateY(-1px);
+  outline: none;
+}
+.note-context {
+  display: grid;
+  gap: 3px;
+}
+.note-context span {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.note-context small {
+  color: var(--faint);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .055em;
+}
+
+.confirm-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(20, 20, 18, 0.28);
+  backdrop-filter: blur(4px);
+  animation: confirm-backdrop-in 140ms ease-out;
+}
+
+.confirm-dialog {
+  width: min(392px, 100%);
+  padding: 22px;
+  border: 1px solid var(--border-strong, #cecec6);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 72px rgba(20, 20, 18, 0.18);
+  animation: confirm-dialog-in 160ms ease-out;
+}
+
+.confirm-dialog h2 {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.confirm-dialog p {
+  margin: 9px 0 0;
+  color: var(--muted, #73736d);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;

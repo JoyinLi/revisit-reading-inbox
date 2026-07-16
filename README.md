@@ -4,7 +4,7 @@
 
 > **Current stable release: v1.0**
 
-Revisit 用于收集看到但暂时没有时间仔细阅读 / 浏览的文章、网站、设计效果图等。通过 Chrome 插件对内容进行本地保存，在 Web App 上可以直接阅读带图文的文章，并进行标注、笔记的编写、支持连接三方模型 API 对内容进行快速总结。解决待读取 / 浏览的内容太多，平台太分散，容易遗漏忘记的问题。
+Revisit 用于收集看到但暂时没有时间仔细阅读 / 浏览的文章、网站、设计效果图等。通过 Chrome 插件对内容进行本地保存，在 Web App 上可以直接阅读带图文的文章，并进行标注、笔记的编写，支持连接三方模型 API 对内容进行快速总结。解决待读取 / 浏览的内容太多、平台太分散、容易遗漏忘记的问题。
 
 A local-first Web App plus Chrome extension for saving cross-platform reading, preserving websites and articles, highlighting passages, writing notes, and returning to what matters.
 
@@ -12,9 +12,9 @@ A local-first Web App plus Chrome extension for saving cross-platform reading, p
 
 Stable versions are preserved instead of being overwritten:
 
-- **v1.0** — the first stable local-first release, permanently preserved on the [`v1.0`](https://github.com/JoyinLi/revisit-reading-inbox/tree/v1.0) branch.
+- **v1.0** — the first stable release, permanently preserved on the `v1.0` branch.
 - **main** — points to the latest stable version.
-- Future major releases, such as **v2.0**, will have their own preserved version branch so v1.0 and v2.0 remain independently accessible.
+- Future major releases, including **v2.0**, will have their own preserved branch so v1.0 and v2.0 remain independently accessible.
 
 ## Included
 
@@ -36,7 +36,6 @@ Stable versions are preserved instead of being overwritten:
 - Highlights review page
 - Multiple page-level notes; every save creates a new note
 - Chinese `Your takeaways` summary rebuilt from all notes
-- Third-party model API connection path for fast content summaries
 - Chrome popup: edit the article name, choose a status, and save the current page with an optional note
 - Chrome context menus: save a page, selected text, link, or image
 - Local JSON data store; no account, paid service, or API key
@@ -113,7 +112,7 @@ These addresses can be changed from the extension's **Connection settings** page
 - Pinterest, login-only pages, and other heavily scripted pages may still be saved as a post/link rather than a clean article.
 - Up to 60 article images per save are copied into the local `apps/server/data/media` folder. Normal images are converted to WebP at quality 80 with a 1600 px maximum edge; very long images use a 2400 px maximum edge and quality 82 to keep diagrams readable. Identical image content is stored only once, even when it appears under different URLs. If a CDN image cannot be downloaded, the Reader keeps its original URL as a fallback. Each Reader image has a manual delete action. Deleting an image removes it from that saved item immediately; the local file is deleted when no other item references the same deduplicated file.
 - Highlight selection is intentionally limited to one paragraph at a time so positions remain stable.
-- Cloud sync, login, mobile capture, OCR, AI summaries, and automatic topic linking are intentionally excluded from this MVP.
+- Cloud sync, login, mobile capture, OCR, and automatic topic linking are intentionally excluded from this MVP.
 
 ## Next production step
 
@@ -125,7 +124,7 @@ After the local workflow proves useful, replace the local JSON store with hosted
 - The Library preview and Reader `Summary` field are reserved for a Chinese summary so mixed-language content can be scanned quickly.
 - Navigation, filters, buttons and other product UI remain in English.
 - Highlights always quote the original text without translation.
-- This local v1.0 release does not connect to a paid AI summarization provider. The Chinese content summary remains editable. `Your takeaways` currently uses a transparent local aggregation rule over your notes; it can later be replaced by a model-generated semantic summary after a provider and cost are approved.
+- The Chinese content summary remains editable. Third-party model API connections can be configured for faster content summaries.
 
 ## WeChat article extraction
 

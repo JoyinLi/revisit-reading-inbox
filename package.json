@@ -1,0 +1,20 @@
+{
+  "name": "revisit",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,web -c auto \"npm run dev -w @revisit/server\" \"npm run dev -w @revisit/web\"",
+    "build": "npm run build -w @revisit/server && npm run build -w @revisit/web",
+    "start": "npm run start -w @revisit/server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "description": "Revisit — Save now. Return with intention."
+}

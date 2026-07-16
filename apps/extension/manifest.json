@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Revisit",
+  "description": "Save websites as compressed visual previews or articles as readable local copies. Save now. Return with intention.",
+  "version": "1.0.0",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "contextMenus",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "http://localhost:8787/*",
+    "http://127.0.0.1:8787/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Save to Revisit",
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html"
+}
