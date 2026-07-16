@@ -1,10 +1,6 @@
 name: Publish Revisit v1.0 source
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/bootstrap-v1.yml'
   workflow_dispatch:
 
 permissions:
@@ -17,23 +13,92 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: true
+
       - name: Rebuild source tree
         shell: bash
         run: |
           set -euo pipefail
+
+          if [ ! -d .bootstrap ]; then
+            echo "Revisit v1.0 source has already been published."
+            exit 0
+          fi
+
           cat .bootstrap/chunk-*.b64 | base64 --decode > /tmp/revisit-v1.0.zip
+          unzip -t /tmp/revisit-v1.0.zip
+
           rm -rf /tmp/revisit-src
           mkdir -p /tmp/revisit-src
           unzip -q /tmp/revisit-v1.0.zip -d /tmp/revisit-src
           cp -a /tmp/revisit-src/revisit-reading-inbox/. .
+
           rm -rf .bootstrap
           rm -f .init
-          rm -f .github/workflows/bootstrap-v1.yml
-      - name: Commit source
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("README.md")
+          text = path.read_text(encoding="utf-8")
+          old = """# Revisit v1.0
+
+          **Save now. Return with intention.**
+
+          A local-first Web App plus Chrome extension for saving cross-platform reading, preserving websites and articles, highlighting passages, writing notes, and returning to what matters.
+
+          """
+          new = """# Revisit v1.0
+
+          **Save now. Return with intention.**
+
+          > **Current stable release: v1.0**
+
+          Revisit 用于收集看到但暂时没有时间仔细阅读 / 浏览的文章、网站、设计效果图等。通过 Chrome 插件对内容进行本地保存，在 Web App 上可以直接阅读带图文的文章，并进行标注、笔记的编写、支持连接三方模型 API 对内容进行快速总结。解决待读取 / 浏览的内容太多，平台太分散，容易遗漏忘记的问题。
+
+          A local-first Web App plus Chrome extension for saving cross-platform reading, preserving websites and articles, highlighting passages, writing notes, and returning to what matters.
+
+          ## Version policy
+
+          Stable versions are preserved instead of being overwritten:
+
+          - **v1.0** — the first stable local-first release, permanently preserved on the [`v1.0`](https://github.com/JoyinLi/revisit-reading-inbox/tree/v1.0) branch.
+          - **main** — points to the latest stable version.
+          - Future major releases, such as **v2.0**, will have their own preserved version branch so v1.0 and v2.0 remain independently accessible.
+
+          """
+          if old in text:
+              text = text.replace(old, new, 1)
+          elif "## Version policy" not in text:
+              raise SystemExit("README header did not match the expected v1.0 release template")
+          path.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Commit and preserve v1.0
         shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No source changes to commit."
+            exit 0
+          fi
+
           git add -A
           git commit -m "feat: publish Revisit v1.0 source"
-          git push
+          git push origin HEAD:main
+
+          if git ls-remote --exit-code --heads origin v1.0 >/dev/null 2>&1; then
+            echo "The v1.0 branch already exists; leaving it unchanged."
+          else
+            git push origin HEAD:v1.0
+          fi
+
+          if git ls-remote --exit-code --tags origin v1.0.0 >/dev/null 2>&1; then
+            echo "The v1.0.0 tag already exists; leaving it unchanged."
+          else
+            git tag -a v1.0.0 -m "Revisit v1.0.0"
+            git push origin v1.0.0
+          fi
